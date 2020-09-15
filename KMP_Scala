@@ -1,18 +1,25 @@
-
-
-object KMP_Scala {
+object KnuthMorrisPrattApp {
   def main(args: Array[String]): Unit = {
-    val input_text = "This is a functional implementation."
-    val input_pattern = "functional"
+    val startTimeMillis = System.currentTimeMillis()
+    val kb = 1024
+    val runtime = Runtime.getRuntime
+    val input_text = "abababaa"
+    val input_pattern = "aba"
+    println("input_text :",input_text)
+    println("input_pattern :",input_pattern)
     println(kmpmatch(input_pattern, input_text))
+    val endTimeMillis = System.currentTimeMillis()
+    val durationSeconds = endTimeMillis - startTimeMillis
+    println("Used Time:  "+durationSeconds)
+    println("Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / kb)
   }
   def kmpmatch(myPattern: String, myText: String): Int = {
-    val prefixTab = compute_prefix(myPattern)
+    val dynamic = compute_prefix(myPattern)
     myText.indices
       .foldLeft(-1, 0) {
         case ((foundIndex, x), i) if foundIndex > 0 => (foundIndex, 0)
         case ((foundIndex, x), i) => {
-          val stepsX = LazyList.iterate(x)(x => prefixTab(x - 1))
+          val stepsX = Stream.iterate(x)(x => dynamic(x - 1))
           val lowerX = stepsX
             .find(x =>
               x == 0 || myPattern(x)
@@ -33,7 +40,7 @@ object KMP_Scala {
       .drop(1)
       .foldLeft(0, Vector(0)) {
         case ((initialValue, prefixT), currentCharacter) => {
-          val lowerValue = LazyList
+          val lowerValue = Stream
             .iterate(initialValue)(initialValue => prefixT(initialValue - 1))
             .find(initialValue =>
               initialValue == 0 || pattern(initialValue) == currentCharacter
@@ -48,3 +55,5 @@ object KMP_Scala {
       ._2
   }
 }
+
+
