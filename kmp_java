@@ -1,0 +1,127 @@
+package fulda;
+import java.util.Scanner;
+
+public class Kmp {
+
+	private char[] pattern;
+	private char[] text;
+	private int pattern_length;
+	private int text_length;
+	private String position; // string of match positions
+	private char[] position_index; // char array that shows matches
+
+	private int[] dynamic; // used by the KMP algorithm
+
+	private static final long KB = 1024L;
+
+	public static void main(String[] args) {
+
+		Scanner scanner = new Scanner(System.in);
+		String inout_text, input_pattern;
+		System.out.println("Enter text: ");
+		inout_text = scanner.nextLine();
+		System.out.println("Enter pattern: ");
+		input_pattern = scanner.nextLine();
+		System.out.println("---------------");
+		long startTime = System.currentTimeMillis();
+		Kmp kmp = new Kmp();
+		kmp.match(inout_text, input_pattern);
+		System.out.println(input_pattern);
+		System.out.println(inout_text);
+		System.out.println(kmp.position_index);
+		System.out.println(kmp.get_Index());
+		System.out.println("----------------");	
+		Runtime runtime = Runtime.getRuntime(); // Get the Java runtime
+		runtime.gc(); // Run the garbage collector
+		long memory = runtime.totalMemory() - runtime.freeMemory(); // Calculate the used memory
+		//System.out.println("Used memory in bytes: " + memory);
+		System.out.println("Memory used (KB): " + memory / KB);
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		System.out.println("Time taken (miliseconds): " + elapsedTime);
+		System.out.println("----------------");	
+		scanner.close();
+	}
+
+	/**
+	 * searches the text tt for the pattern pp
+	 */
+	//searches for the pattern in the text
+	public void match(String text, String pattern) {
+		prepareText(text);
+		preparePattern(pattern);
+		findMatch();
+	}
+
+	/**
+	 * sets the text
+	 */
+	//prepares the text
+	private void prepareText(String txt) {
+		text_length = txt.length();
+		text = txt.toCharArray();
+		initialize_position();
+	}
+
+	/**
+	 * sets the pattern
+	 */
+	//prepares the pattern
+	private void preparePattern(String ptn) {
+		pattern_length = ptn.length();
+		pattern = ptn.toCharArray();
+		dynamic = new int[pattern_length + 1];
+		compute_prefix();
+	}
+
+	//initialize the position and prepares array position_index
+	private void initialize_position() {
+		position = "";
+		position_index = new char[text_length];
+		for (int i = 0; i < text_length; i++)
+			position_index[i] = ' ';
+	}
+
+	//Computation of prefix function 
+	private void compute_prefix() {
+		int i = 0, j = -1;
+		dynamic[i] = j;
+		while (i < pattern_length) {
+			while (j >= 0 && pattern[i] != pattern[j])
+				j = dynamic[j];
+			i++;
+			j++;
+			dynamic[i] = j;
+		}
+	}
+
+	//find all occurrences of the pattern
+	private void findMatch() {
+		int i = 0, j = 0;
+		while (i < text_length) {
+			while (j >= 0 && text[i] != pattern[j])
+				j = dynamic[j];
+			i++;
+			j++;
+			if (j == pattern_length) // a match is found
+			{
+				show_Position(i - pattern_length);
+				j = dynamic[j];
+			}
+		}
+	}
+
+	//shows the position of the match
+	private void show_Position(int i) {
+		position += i + " ";
+		position_index[i] = '^';
+	}
+
+	//returns the index where match occurred
+	public String get_Index() {
+		if(position.equals(""))
+			return "Match not found";
+		else return "Match found at "+(position);
+	}
+
+}
