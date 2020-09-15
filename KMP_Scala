@@ -1,0 +1,50 @@
+
+
+object KMP_Scala {
+  def main(args: Array[String]): Unit = {
+    val input_text = "This is a functional implementation."
+    val input_pattern = "functional"
+    println(kmpmatch(input_pattern, input_text))
+  }
+  def kmpmatch(myPattern: String, myText: String): Int = {
+    val prefixTab = compute_prefix(myPattern)
+    myText.indices
+      .foldLeft(-1, 0) {
+        case ((foundIndex, x), i) if foundIndex > 0 => (foundIndex, 0)
+        case ((foundIndex, x), i) => {
+          val stepsX = LazyList.iterate(x)(x => prefixTab(x - 1))
+          val lowerX = stepsX
+            .find(x =>
+              x == 0 || myPattern(x)
+                == myText(i)
+            )
+            .get
+          val newX =
+            if (myPattern(lowerX) == myText(i))
+              lowerX + 1
+            else lowerX
+          if (newX == myPattern.length) (i - newX + 1, 0) else (-1, newX)
+        }
+      }
+      ._1
+  }
+  def compute_prefix(pattern: String): Vector[Int] = {
+    pattern
+      .drop(1)
+      .foldLeft(0, Vector(0)) {
+        case ((initialValue, prefixT), currentCharacter) => {
+          val lowerValue = LazyList
+            .iterate(initialValue)(initialValue => prefixT(initialValue - 1))
+            .find(initialValue =>
+              initialValue == 0 || pattern(initialValue) == currentCharacter
+            )
+            .get
+          val newValue =
+            if (pattern(lowerValue) == currentCharacter) lowerValue + 1
+            else lowerValue
+          (newValue, prefixT :+ newValue)
+        }
+      }
+      ._2
+  }
+}
